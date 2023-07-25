@@ -1,0 +1,46 @@
+rspc_uservm:
+  vars:
+    custom:
+      runcmd: |
+        #!/usr/bin/env bash
+
+        export OUTPUT=~/setup.log
+        export KUBECONFIG=/etc/pf9/kube.d/kubeconfigs/admin.yaml
+        export PATH=/opt/pf9/pf9-kube/bin:/usr/local/bin:$PATH
+        export GIT_TOKEN=${GIT_PAT}
+        export GIT_REPO=${GIT_REPO}
+
+        curl https://raw.githubusercontent.com/kadwanev/retry/master/retry -o /usr/local/bin/retry && chmod +x /usr/local/bin/retry
+        curl -sL https://pmkft-assets.s3-us-west-1.amazonaws.com/pf9ctl_setup -o- | bash >"${OUTPUT}" 2>&1
+        retry -t 3 -s 2 'pf9ctl config set -u "${DU_URL}" -e "${ADMIN_USER}" -p "${ADMIN_PASS}" -t "${SERVICE}" -r "${REGION}" --no-prompt' >>"${OUTPUT}" 2>&1
+        retry -t 3 -s 2 'if [ $RETRY_ATTEMPT -gt 1 ]; then pf9ctl decommission-node --no-prompt --verbose && pf9ctl prep-node -c --no-prompt --verbose ; else pf9ctl prep-node -c --no-prompt --verbose; fi;' >>"${OUTPUT}" 2>&1
+        retry -t 3 -s 2 'pf9ctl attach-node --no-prompt --uuid "CLUSTER_UUID" --master-ip $(hostname --all-ip-addresses | cut -d " " -f1)' >>"${OUTPUT}" 2>&1
+
+        VERSION=$(curl --silent "https://api.github.com/repos/argoproj-labs/argocd-autopilot/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+        echo "Downloading ArgoCD Autopilot." >> "${OUTPUT}"
+        curl -L --output - https://github.com/argoproj-labs/argocd-autopilot/releases/download/$VERSION/argocd-autopilot-linux-amd64.tar.gz | tar zx
+        mv argocd-autopilot-* /usr/local/bin/argocd-autopilot
+        echo -e "Installed version $(argocd-autopilot version)\n\nWaiting for K8s API to be ready." >> "${OUTPUT}"
+        until $(curl --output /dev/null --silent --head -k https://localhost:443); do printf '.' >> "${OUTPUT}"; sleep 10; done
+        echo "Bootstrapping Cluster with ArgoCD." >> "${OUTPUT}"
+        argocd-autopilot repo bootstrap --recover --provider github --log-level debug >> "${OUTPUT}"
+        echo "-- ArgoCD Login--" >> "${OUTPUT}"
+        echo -e "In another terminal run:\nssh -L8443:$(kubectl get svc -n argocd argocd-server -o jsonpath='{.spec.clusterIP}'):443 ubuntu@$(hostname --all-ip-addresses | cut -d ' ' -f1) ping 8.8.8.8" >> "${OUTPUT}"
+        echo "Open this URL in your browser: https://localhost:8443" >> "${OUTPUT}"
+        echo "Login: admin/$(kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 --decode | tee ~/.argocd)" >> "${OUTPUT}"
+      ssh_key_name: ${SSH_KEY_NAME}
+  hosts:
+    os_rspc_uservm:
+      ansible_connection: local
+      os_server_salt_grains:
+        roles:
+          - aws-route53-a-record
+      os_server_flavor: m4.xlarge
+      os_server_volume_size: 40
+      os_server_name_prefix: "jmiller-${CLUSTER_NAME}-"
+      os_server_security_groups:
+        - allow_ssh_icmp_ingress
+      os_server_state: present
+      os_servers:
+        - name: controlplane-1
+          image: "${NODE_IMAGE}"

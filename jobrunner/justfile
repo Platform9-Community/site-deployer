@@ -1,0 +1,39 @@
+set export
+
+red := '\033[0;31m'
+green := '\033[0;32m'
+blue := '\033[0;34m'
+cyan := '\033[0;36m'
+no_color := '\033[0m'
+####
+
+_bash := "#!/bin/bash"
+
+_sh := "just --no-highlight _exec_sh"
+
+_default:
+  @just --list --unsorted
+
+_exec_sh *ARGS:
+  @{{_bash}}
+  {{ARGS}}
+
+setup:
+  @{{_sh}} ". ./admin.rc ; printf \"\n\n{{cyan}}Cloning repo with \${GIT_USER}{{no_color}}\n\n\""
+  @{{_sh}} ". ./admin.rc ; if [ ! -d ops-infra-automation ]; then git clone https://\${GIT_USER}:\${GIT_PAT}@github.com/platform9/ops-infra-automation.git --depth 1; fi"
+
+render_ansible_template:
+  @{{_sh}} ". ./admin.rc ; envsubst '\${CLUSTER_NAME},\${NODE_IMAGE},\${DU_URL},\${ADMIN_USER},\${ADMIN_PASS},\${SERVICE},\${REGION},\${SSH_KEY_NAME},\${GIT_PAT},\${GIT_REPO}' < pmk_cluster.yaml.tmpl > pmk_cluster.yaml"
+
+create_cluster cluster_name:
+  @{{_sh}} "printf \"\n\n{{cyan}}Creating cluster via Qbert..{{no_color}}\n\n\""
+  @{{_sh}} "./create_cluster.sh {{cluster_name}} | tee cluster_uuid.txt"
+  @{{_sh}} "printf \"\n\n{{green}}Cluster with UUID: $(cat cluster_uuid.txt) created.{{no_color}}\n\n\""
+
+set_cluster_uuid:
+  @{{_sh}} "perl -p -i -e "s/CLUSTER_UUID/`cat cluster_uuid.txt`/" pmk_cluster.yaml"
+
+run_ansible:
+  @{{_sh}} "cd ops-infra-automation && ansible-playbook -i ../pmk_cluster.yaml core_os_vms.yml -vvvv"
+
+deploy cluster_name: setup render_ansible_template (create_cluster cluster_name) set_cluster_uuid run_ansible

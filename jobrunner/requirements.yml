@@ -1,0 +1,8 @@
+collections:
+- name: openstack.cloud
+  version: 1.10.0
+- name: https://github.com/phoenixnap/ansible-collection-pnap.git
+  type: git
+  version: ad15d9ee64ad9e996caf8d2c78980f527077049c
+- name: amazon.aws
+  version: 5.4.0
