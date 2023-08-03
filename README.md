@@ -1,6 +1,6 @@
 # site-deployer
 
-[Architecture](files/site-deployer-arch.png)
+![Architecture](files/site-deployer-arch.png)
 
 ## Getting Started
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
