@@ -37,7 +37,7 @@ rspc_uservm:
           - aws-route53-a-record
       os_server_flavor: m4.xlarge
       os_server_volume_size: 40
-      os_server_name_prefix: "jmiller-${CLUSTER_NAME}-"
+      os_server_name_prefix: "se-gitops-${CLUSTER_NAME}-"
       os_server_security_groups:
         - allow_ssh_icmp_ingress
       os_server_state: present
