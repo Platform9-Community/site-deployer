@@ -75,7 +75,7 @@ func (r *SiteReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	site := &deployv1.Site{}
 	if err := r.Get(ctx, req.NamespacedName, site); err != nil {
-		zlog.Error().Err(err).Msg("unable to fetch site")
+		zlog.Error().Err(err).Msg("unable to fetch site - this is expected if it was just deleted")
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
 		// requeue (we'll need to wait for a new notification), and we can get them
 		// on deleted requests.
@@ -153,8 +153,9 @@ func (r *SiteReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 						},
 						Containers: []corev1.Container{
 							{
-								Name:  "deploy",
-								Image: "jmv2/deployrunner:0.0.13",
+								Name:            "deploy",
+								Image:           "jmv2/deployrunner:latest",
+								ImagePullPolicy: "Always",
 								Resources: corev1.ResourceRequirements{
 									Requests: corev1.ResourceList{
 										corev1.ResourceCPU:    *resource.NewMilliQuantity(int64(50), resource.DecimalSI),

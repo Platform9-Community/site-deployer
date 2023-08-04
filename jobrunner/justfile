@@ -7,7 +7,7 @@ cyan := '\033[0;36m'
 no_color := '\033[0m'
 ####
 
-_bash := "#!/bin/bash"
+_bash := "#!/usr/bin/env bash"
 
 _sh := "just --no-highlight _exec_sh"
 
@@ -27,11 +27,11 @@ render_ansible_template:
 
 create_cluster cluster_name:
   @{{_sh}} "printf \"\n\n{{cyan}}Creating cluster via Qbert..{{no_color}}\n\n\""
-  @{{_sh}} "./create_cluster.sh {{cluster_name}} | tee cluster_uuid.txt"
-  @{{_sh}} "printf \"\n\n{{green}}Cluster with UUID: $(cat cluster_uuid.txt) created.{{no_color}}\n\n\""
+  @{{_sh}} "retry -t 10 -s 5 './create_cluster.sh {{cluster_name}}'"
+  @{{_sh}} "printf \"\n\n{{green}}Cluster with UUID: `cat /tmp/cluster_uuid.txt` created.{{no_color}}\n\n\""
 
 set_cluster_uuid:
-  @{{_sh}} "perl -p -i -e "s/CLUSTER_UUID/`cat cluster_uuid.txt`/" pmk_cluster.yaml"
+  @{{_sh}} "perl -p -i -e "s/CLUSTER_UUID/`cat /tmp/cluster_uuid.txt`/" pmk_cluster.yaml"
 
 run_ansible:
   @{{_sh}} "cd ops-infra-automation && ansible-playbook -i ../pmk_cluster.yaml core_os_vms.yml -vvvv"

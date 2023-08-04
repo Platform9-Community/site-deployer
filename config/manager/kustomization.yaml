@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: jmv2/site-deploy-operator
-  newTag: 0.0.11
+  newTag: 0.0.18
