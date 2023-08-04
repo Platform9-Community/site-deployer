@@ -129,4 +129,4 @@ fi
 
 >/tmp/cluster_uuid.txt
 
-echo "$cluster_uuid" | jq -r .uuid | tee > /tmp/cluster_uuid.txt
+echo "$cluster_uuid" | jq -r .uuid | tee /tmp/cluster_uuid.txt
