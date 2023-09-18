@@ -1,4 +1,4 @@
-name: golangci-lint
+name: test-build
 on:
   push:
     branches:
