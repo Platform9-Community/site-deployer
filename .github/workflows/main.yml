@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - jeremymv2/allow_any_job_image
 
 permissions:
   contents: write
