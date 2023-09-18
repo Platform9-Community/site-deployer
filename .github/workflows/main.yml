@@ -1,0 +1,61 @@
+name: Main
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  detect_changes:
+    runs-on: ubuntu-latest
+    # Set job outputs to values from filter step
+    outputs:
+      bump_app: ${{ steps.filter.outputs.bump_app }}
+      bump_helm: ${{ steps.filter.outputs.bump_helm }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            bump_app:
+              - 'cmd/**'
+            bump_helm:
+              - 'helm/**'
+
+  bump_build_push:
+    needs: detect_changes
+    if: needs.detect_changes.outputs.bump_app == 'true' || needs.detect_changes.outputs.bump_helm == 'true'
+    name: Bump Version(s)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: main
+      - name: Bump Application package.json
+        if: needs.detect_changes.outputs.bump_app == 'true'
+        id: app-version-bump
+        uses: 'phips28/gh-action-bump-version@master'
+        with:
+          minor-wording: 'add,Adds,new'
+          major-wording: 'MAJOR,cut-major'
+          patch-wording: 'patch,fixes'     # Providing patch-wording will override commits
+                                            # defaulting to a patch bump.
+          rc-wording: 'RELEASE,alpha'
+          skip-commit: 'true'
+          skip-tag: 'true'
+          skip-push: 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          PACKAGEJSON_DIR: 'cmd'
+      - name: Get Versions
+        id: get_versions
+        run: |
+          echo "::set-output name=APP_VERSION::$(awk -F: '/version/{gsub(/"/,"", $2); print $2}' cmd/package.json)"
