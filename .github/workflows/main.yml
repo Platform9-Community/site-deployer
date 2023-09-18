@@ -19,8 +19,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
         with:
-          ref: main
-
+          ref: ${{ github.ref }}
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -37,11 +36,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
-          ref: main
+          ref: ${{ github.ref }}
+      - name: 'directory listing'
+        run: ls -l
       - name: 'cat cmd/package.json'
-        run: cat ./cmd/package.json
+        run: cat cmd/package.json
       - name: Bump Application package.json
         if: needs.detect_changes.outputs.bump_app == 'true'
         id: app-version-bump
@@ -59,7 +60,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           PACKAGEJSON_DIR: 'cmd'
       - name: 'cat cmd/package.json'
-        run: cat ./cmd/package.json
+        run: cat cmd/package.json
       - name: 'Output Step'
         env:
           NEW_TAG: ${{ steps.version-bump.outputs.newTag }}
