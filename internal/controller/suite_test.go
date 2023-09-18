@@ -30,7 +30,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	deployv1 "github.com/jeremymv2/site-deployer/api/v1"
+	deployv1 "github.com/Platform9-Community/site-deployer/api/v1"
 	//+kubebuilder:scaffold:imports
 )
 

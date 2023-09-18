@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.12.0
-  name: sites.deploy.ethzero.cloud
+  name: sites.deploy.pf9.io
 spec:
-  group: deploy.ethzero.cloud
+  group: deploy.pf9.io
   names:
     kind: Site
     listKind: SiteList
@@ -34,26 +34,77 @@ spec:
           spec:
             description: SiteSpec defines the desired state of Site
             properties:
-              clusterName:
-                description: Foo is an example field of Site. Edit site_types.go to
-                  remove/update
-                type: string
-              nodeImage:
-                type: string
-              numMasters:
-                format: int32
-                type: integer
-              numWorkers:
-                format: int32
-                type: integer
-              runWorkloadOnMasters:
+              allowQbertDeletion:
                 type: boolean
+              argoSource:
+                properties:
+                  path:
+                    type: string
+                  repoURL:
+                    type: string
+                  targetRevision:
+                    type: string
+                required:
+                - path
+                - repoURL
+                - targetRevision
+                type: object
+              clusterName:
+                type: string
+              infraJob:
+                properties:
+                  args:
+                    items:
+                      type: string
+                    type: array
+                  cmd:
+                    items:
+                      type: string
+                    type: array
+                  env:
+                    items:
+                      properties:
+                        name:
+                          type: string
+                        subPath:
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
+                  image:
+                    type: string
+                  mounts:
+                    items:
+                      properties:
+                        mountPath:
+                          type: string
+                        name:
+                          type: string
+                        readOnly:
+                          type: boolean
+                        subPath:
+                          type: string
+                      required:
+                      - mountPath
+                      - name
+                      - readOnly
+                      - subPath
+                      type: object
+                    type: array
+                  secretName:
+                    type: string
+                required:
+                - cmd
+                - image
+                type: object
+              qbertCluster:
+                type: string
             required:
+            - allowQbertDeletion
             - clusterName
-            - nodeImage
-            - numMasters
-            - numWorkers
-            - runWorkloadOnMasters
+            - infraJob
+            - qbertCluster
             type: object
           status:
             description: SiteStatus defines the observed state of Site
