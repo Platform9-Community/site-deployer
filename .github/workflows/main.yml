@@ -37,9 +37,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
         with:
           ref: main
+      - name: 'cat cmd/package.json'
+        run: cat ./cmd/package.json
       - name: Bump Application package.json
         if: needs.detect_changes.outputs.bump_app == 'true'
         id: app-version-bump
@@ -56,7 +58,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           PACKAGEJSON_DIR: 'cmd'
-      - name: Get Versions
-        id: get_versions
-        run: |
-          echo "::set-output name=APP_VERSION::$(awk -F: '/version/{gsub(/"/,"", $2); print $2}' cmd/package.json)"
+      - name: 'cat cmd/package.json'
+        run: cat ./cmd/package.json
+      - name: 'Output Step'
+        env:
+          NEW_TAG: ${{ steps.version-bump.outputs.newTag }}
+        run: echo "new tag $NEW_TAG"
