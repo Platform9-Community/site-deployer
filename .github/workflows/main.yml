@@ -43,14 +43,14 @@ jobs:
         run: ls -l
       - name: 'cat cmd/package.json'
         run: cat cmd/package.json
-      - name: Bump Application package.json
+      - name: Bump Application version in package.json
         if: needs.detect_changes.outputs.bump_app == 'true'
         id: app-version-bump
         uses: 'phips28/gh-action-bump-version@master'
         with:
-          minor-wording: 'add,Adds,new'
-          major-wording: 'MAJOR,cut-major'
-          patch-wording: 'patch,fixes'     # Providing patch-wording will override commits
+          major-wording: 'major,breaking'
+          minor-wording: 'feat,minor'
+          patch-wording: 'fix,chore,test,docs,style,refactor,patch'
                                             # defaulting to a patch bump.
           rc-wording: 'RELEASE,alpha'
           skip-commit: 'true'
@@ -63,5 +63,5 @@ jobs:
         run: cat cmd/package.json
       - name: 'Output Step'
         env:
-          NEW_TAG: ${{ steps.version-bump.outputs.newTag }}
+          NEW_TAG: ${{ steps.app-version-bump.outputs.newTag }}
         run: echo "new tag $NEW_TAG"

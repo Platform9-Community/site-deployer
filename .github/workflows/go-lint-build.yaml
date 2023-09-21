@@ -1,4 +1,4 @@
-name: golangci-lint
+name: lint_and_build
 on:
   push:
     branches:
@@ -53,3 +53,11 @@ jobs:
 
           # Optional: The mode to install golangci-lint. It can be 'binary' or 'goinstall'.
           # install-mode: "goinstall"
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@main
+      - name: build application
+        run: make build
