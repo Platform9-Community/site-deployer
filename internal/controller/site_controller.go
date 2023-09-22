@@ -177,6 +177,8 @@ func (r *SiteReconciler) ReconcileSiteJob(ctx context.Context, site *deployv1.Si
 			}
 		}
 	}
+
+	// Create a ConfigMap to store the qbertCluster json payload
 	siteNamedResource := appName + "-" + site.Spec.ClusterName
 	siteConfigmap := &corev1.ConfigMap{}
 	err := r.Get(ctx, types.NamespacedName{Name: siteNamedResource, Namespace: site.Namespace}, siteConfigmap)
