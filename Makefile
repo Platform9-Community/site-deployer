@@ -175,5 +175,5 @@ version:
 	@echo "Version is: $(VERSION)"
 
 .PHONY: docker_img_name_with_tag
-docker_img_name_with_tag:
+docker_img_name_and_tag:
 	@echo "$(IMAGE):$(VERSION)"

@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - jeremymv2/allow_any_job_image
 
 permissions:
   contents: write
@@ -26,13 +25,11 @@ jobs:
           filters: |
             bump_app:
               - 'cmd/**'
-            bump_helm:
-              - 'helm/**'
 
   bump_build_push:
     needs: detect_changes
-    if: needs.detect_changes.outputs.bump_app == 'true' || needs.detect_changes.outputs.bump_helm == 'true'
-    name: Bump Version(s)
+    if: needs.detect_changes.outputs.bump_app == 'true'
+    name: Bump Application Version
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -40,14 +37,12 @@ jobs:
         with:
           ref: ${{ github.ref }}
       - name: Bump Application version in package.json
-        if: needs.detect_changes.outputs.bump_app == 'true'
-        id: app-version-bump
+        id: version-bump-app
         uses: 'phips28/gh-action-bump-version@master'
         with:
-          major-wording: 'major,breaking'
-          minor-wording: 'feat,minor'
+          major-wording: 'major,MAJOR,breaking'
+          minor-wording: 'feat,FEAT,minor,MINOR'
           patch-wording: 'fix,chore,test,docs,style,refactor,patch'
-                                            # defaulting to a patch bump.
           rc-wording: 'RELEASE,alpha'
           skip-commit: 'true'
           skip-tag: 'true'
@@ -57,17 +52,12 @@ jobs:
           PACKAGEJSON_DIR: 'cmd'
       - name: New Version Output
         env:
-          NEW_TAG: ${{ steps.app-version-bump.outputs.newTag }}
+          NEW_TAG: ${{ steps.version-bump-app.outputs.newTag }}
         run: echo "New version $NEW_TAG"
       - name: Retrieve Docker Image Name with Tag
         run: |
-          echo "IMG_TAG_NAME=$(make docker_img_name_with_tag)" >> $GITHUB_OUTPUT
+          echo "::set-output name=IMG_NAME_AND_TAG::$(make docker_img_name_and_tag)"
         id: img_name_and_version_tag
-      - name: New Image Name with Tag
-        env:
-          IMG_TAG_NAME: ${{ steps.img_name_and_version_tag.outputs.IMG_TAG_NAME }}
-        run: |
-          echo "New Image Name with Tag: $IMG_TAG_NAME"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -82,4 +72,19 @@ jobs:
         with:
           context: .
           push: false
-          tags: ${{ steps.img_name_and_version_tag.outputs.IMG_TAG_NAME }}
+          tags: ${{ steps.img_name_and_version_tag.outputs.IMG_NAME_AND_TAG }}
+      - name: Commit Files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -am 'CI(version) ${{ steps.version-bump-app.outputs.newTag }}'
+      - name: Tag repo
+        uses: rickstaa/action-create-tag@v1
+        with:
+          tag: ${{ steps.version-bump-app.outputs.newTag }}
+          message: "CI: bump to new version ${{ steps.version-bump-app.outputs.newTag }}"
+      - name: Push Changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GH_TOKEN }}
+          tags: true
