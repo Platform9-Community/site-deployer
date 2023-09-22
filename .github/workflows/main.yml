@@ -14,7 +14,7 @@ jobs:
     # Set job outputs to values from filter step
     outputs:
       bump_app: ${{ steps.filter.outputs.bump_app }}
-      bump_helm: ${{ steps.filter.outputs.bump_helm }}
+      version_file: ${{ steps.filter.outputs.version_file }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
@@ -24,17 +24,17 @@ jobs:
         id: filter
         with:
           filters: |
-            version_file:
-              - 'cmd/package.json'
             bump_app:
               - 'cmd/**'
               - 'internal/**'
               - 'api/**'
               - 'config/**'
+            version_file:
+              - 'cmd/package.json'
 
   bump_build_push:
     needs: detect_changes
-    if: needs.detect_changes.outputs.bump_app == 'true' && needs.detect_changes.outputs.version_file == 'false'
+    if: ${{ needs.detect_changes.outputs.bump_app == 'true' }} && ${{ needs.detect_changes.outputs.version_file == 'false' }}
     name: Bump Application Version
     runs-on: ubuntu-latest
     steps:
