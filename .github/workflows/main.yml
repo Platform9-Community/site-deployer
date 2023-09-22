@@ -26,6 +26,9 @@ jobs:
           filters: |
             bump_app:
               - 'cmd/**'
+              - 'internal/**'
+              - 'api/**'
+              - 'config/**'
 
   bump_build_push:
     needs: detect_changes
@@ -37,7 +40,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ github.ref }}
-      - name: Bump Application version in package.json
+      - name: Bump Application Version in package.json
         id: version-bump-app
         uses: 'phips28/gh-action-bump-version@master'
         with:
@@ -68,7 +71,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and publish Image
+      - name: Build and Publish Image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -76,7 +79,7 @@ jobs:
           tags: ${{ steps.img_name_and_version_tag.outputs.IMG_NAME_AND_TAG }}
       - name: Commit Files
         run: |
-          git config --local user.email "action@github.com"
+          git config --local user.email "action@users.noreply.github.com"
           git config --local user.name "GitHub Action"
           git commit -am 'CI(version) ${{ steps.version-bump-app.outputs.newTag }}'
           git tag ${{ steps.version-bump-app.outputs.newTag }}
