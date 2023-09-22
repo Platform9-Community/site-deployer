@@ -24,8 +24,9 @@ jobs:
         id: filter
         with:
           filters: |
+            no_bump:
+              - 'cmd/package.json'
             bump_app:
-              - '!cmd/package.json'
               - 'cmd/**'
               - 'internal/**'
               - 'api/**'
@@ -33,7 +34,7 @@ jobs:
 
   bump_build_push:
     needs: detect_changes
-    if: needs.detect_changes.outputs.bump_app == 'true'
+    if: needs.detect_changes.outputs.bump_app == 'true' && ! needs.detect_changes.outputs.no_bump
     name: Bump Application Version
     runs-on: ubuntu-latest
     steps:
