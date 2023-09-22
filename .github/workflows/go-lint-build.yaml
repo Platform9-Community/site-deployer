@@ -1,8 +1,8 @@
-name: golangci-lint
+name: lint_and_build
 on:
   push:
     branches:
-      - '*'
+      - '!main'
   pull_request:
 
 permissions:
@@ -35,7 +35,8 @@ jobs:
           #
           # Note: By default, the `.golangci.yml` file should be at the root of the repository.
           # The location of the configuration file can be changed by using `--config=`
-          # args: --timeout=30m --config=/my/path/.golangci.yml --issues-exit-code=0
+          # args: --timeout=10m --verbose --config=/my/path/.golangci.yml --issues-exit-code=0
+          args: --timeout=10m --verbose --issues-exit-code=0
 
           # Optional: show only new issues if it's a pull request. The default value is `false`.
           # only-new-issues: true
@@ -52,3 +53,11 @@ jobs:
 
           # Optional: The mode to install golangci-lint. It can be 'binary' or 'goinstall'.
           # install-mode: "goinstall"
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@main
+      - name: build application
+        run: make build

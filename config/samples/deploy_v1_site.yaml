@@ -1,10 +1,78 @@
-apiVersion: deploy.ethzero.cloud/v1
+apiVersion: deploy.pf9.io/v1
 kind: Site
 metadata:
-  name: ${CLUSTER_NAME}
+  name: test-site
+  namespace: site-deployer-system
 spec:
-  clusterName: ${CLUSTER_NAME}
-  nodeImage: Ubuntu 20.04
-  numMasters: 1
-  numWorkers: 0
-  runWorkloadOnMasters: true
+  clusterName: test-site
+  argoSource:
+    repoURL: https://github.com/argoproj/argocd-example-apps.git
+    targetRevision: HEAD
+    path: guestbook
+  allowQbertDeletion: false
+  infraJob:
+    image: registry.k8s.io/busybox
+    cmd: ["sh", "-c"]
+    args:
+      - sleep 30
+    secretName: site-deployer-test-site
+    env:
+      - name: API_TOKEN
+        subPath: token
+    mounts:
+      - name: clouds
+        readOnly: true
+        subPath: clouds.yaml
+        mountPath: /etc/foo/clouds.yaml
+  qbertCluster: |-
+    {
+      "name": "test-site",
+      "region": "us-east-1",
+      "azs": [
+        "us-east-1a",
+        "us-east-1b"
+      ],
+      "ami": "ami-01b996646377b6619",
+      "sshKey": "jmillerpf9",
+      "masterFlavor": "t3.xlarge",
+      "workerFlavor": "t3.xlarge",
+      "numMasters": 3,
+      "enableCAS": true,
+      "numWorkers": 5,
+      "allowWorkloadsOnMaster": true,
+      "isPrivate": true,
+      "internalElb": false,
+      "serviceFqdn": "jmiller-services.cfe.pf9.io",
+      "containersCidr": "10.20.0.0/16",
+      "servicesCidr": "10.21.0.0/16",
+      "networkPlugin": "calico",
+      "privileged": true,
+      "customAmi": "ami-01b996646377b6619",
+      "numMinWorkers": 5,
+      "numMaxWorkers": 6,
+      "externalDnsName": "jmiller-aws-test.cfe.pf9.io",
+      "domainId": "/hostedzone/Z1CQA17SUT2MB2",
+      "nodePoolUuid": "35e37ae2-5d05-4410-99a1-7e2922449864",
+      "enableProfileAgent": true,
+      "kubeRoleVersion": "1.24.7-pmk.240",
+      "mtuSize": 1440,
+      "calicoIpIpMode": "Always",
+      "calicoNatOutgoing": true,
+      "calicoV4BlockSize": "26",
+      "calicoIPv4DetectionMethod": "first-found",
+      "runtimeConfig": "",
+      "containerRuntime": "containerd",
+      "etcdBackup": {
+        "storageType": "local",
+        "isEtcdBackupEnabled": 1,
+        "storageProperties": {
+          "localPath": "/etc/pf9/etcd-backup"
+        },
+        "dailyBackupTime": "02:00",
+        "maxTimestampBackupCount": 3
+      },
+      "monitoring": {
+        "retentionTime": "7d"
+      },
+      "tags": {}
+    }

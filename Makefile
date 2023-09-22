@@ -1,6 +1,9 @@
-
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+VERSION = $(shell jq -r '.version' <cmd/package.json)
+REGISTRY ?= jmv2
+TAG ?= ${VERSION}
+IMGNAME ?= site-deploy-controller
+IMAGE = $(REGISTRY)/$(IMGNAME)
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.27.1
 
@@ -60,6 +63,10 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
+.PHONY: lint
+lint: ## Run lint against code.
+	golangci-lint run
+
 .PHONY: test
 test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
@@ -78,8 +85,9 @@ run: manifests generate fmt vet ## Run a controller from your host.
 # (i.e. docker build --platform linux/arm64 ). However, you must enable docker buildKit for it.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
-docker-build: test ## Build docker image with the manager.
-	$(CONTAINER_TOOL) build -t ${IMG} .
+docker-build: test lint ## Build docker image with the manager.
+	$(CONTAINER_TOOL) image inspect ${IMAGE}:${TAG} >/dev/null 2>&1 || \
+        	$(CONTAINER_TOOL) build -t ${IMAGE}:${TAG} .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
@@ -161,3 +169,11 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+
+.PHONY: version
+version:
+	@echo "Version is: $(VERSION)"
+
+.PHONY: docker_img_name_with_tag
+docker_img_name_and_tag:
+	@echo "$(IMAGE):$(VERSION)"

@@ -24,17 +24,43 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+type EnvVars struct {
+	Name    string `json:"name"`
+	SubPath string `json:"subPath,omitempty"`
+}
+
+type MountedSecrets struct {
+	Name      string `json:"name"`
+	MountPath string `json:"mountPath"`
+	ReadOnly  bool   `json:"readOnly"`
+	SubPath   string `json:"subPath"`
+}
+
+type ArgoSource struct {
+	RepoURL        string `json:"repoURL"`
+	TargetRevision string `json:"targetRevision"`
+	Path           string `json:"path"`
+}
+
+type SiteJob struct {
+	Image      string           `json:"image"`
+	Cmd        []string         `json:"cmd"`
+	Args       []string         `json:"args,omitempty"`
+	Env        []EnvVars        `json:"env,omitempty"`
+	Mounts     []MountedSecrets `json:"mounts,omitempty"`
+	SecretName string           `json:"secretName,omitempty"`
+}
+
 // SiteSpec defines the desired state of Site
 type SiteSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Site. Edit site_types.go to remove/update
-	ClusterName          string `json:"clusterName"`
-	NodeImage            string `json:"nodeImage"`
-	NumMasters           int32  `json:"numMasters"`
-	NumWorkers           int32  `json:"numWorkers"`
-	RunWorkloadOnMasters bool   `json:"runWorkloadOnMasters"`
+	ClusterName        string     `json:"clusterName"`
+	ArgoSrc            ArgoSource `json:"argoSource,omitempty"`
+	InfraJob           SiteJob    `json:"infraJob"`
+	QbertCluster       string     `json:"qbertCluster"`
+	AllowQbertDeletion bool       `json:"allowQbertDeletion"`
 }
 
 // SiteStatus defines the observed state of Site

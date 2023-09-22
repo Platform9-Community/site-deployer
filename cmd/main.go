@@ -17,7 +17,11 @@ limitations under the License.
 package main
 
 import (
+	"embed"
+	_ "embed"
+	"encoding/json"
 	"flag"
+	"fmt"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -31,8 +35,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	deployv1 "github.com/jeremymv2/site-deployer/api/v1"
-	"github.com/jeremymv2/site-deployer/internal/controller"
+	deployv1 "github.com/Platform9-Community/site-deployer/api/v1"
+	"github.com/Platform9-Community/site-deployer/internal/controller"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -40,6 +44,14 @@ var (
 	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
 )
+
+//go:embed package.json
+var fh embed.FS
+
+type PackageInfo struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+}
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
@@ -65,13 +77,24 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
+	packagedata, err := fh.ReadFile("package.json")
+	if err != nil {
+		setupLog.Error(err, "unable to read package version file")
+	}
+	var packageJson PackageInfo
+	err = json.Unmarshal(packagedata, &packageJson)
+	if err != nil {
+		setupLog.Error(err, "unable to marshall json version data")
+	}
+	setupLog.Info(fmt.Sprintf("%s version %s launching", packageJson.Name, packageJson.Version))
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
 		Port:                   9443,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "5454fec6.ethzero.cloud",
+		LeaderElectionID:       "5454fec6.pf9.io",
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
