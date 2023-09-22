@@ -47,16 +47,13 @@ jobs:
           skip-commit: 'true'
           skip-tag: 'true'
           skip-push: 'true'
-          token: ${{ secrets.GH_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PACKAGEJSON_DIR: 'cmd'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git commit -am 'CI(version) ${{ steps.version-bump-app.outputs.newTag }}'
-          git tag ${{ steps.version-bump-app.outputs.newTag }}
-          git push origin main ${{ steps.version-bump-app.outputs.newTag }}
+      - name: New Version Output
+        env:
+          NEW_TAG: ${{ steps.version-bump-app.outputs.newTag }}
+        run: echo "New version $NEW_TAG"
       - name: Retrieve Docker Image Name with Tag
         run: |
           echo "::set-output name=IMG_NAME_AND_TAG::$(make docker_img_name_and_tag)"
@@ -76,3 +73,14 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.img_name_and_version_tag.outputs.IMG_NAME_AND_TAG }}
+      - name: Commit Files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -am 'CI(version) ${{ steps.version-bump-app.outputs.newTag }}'
+          git tag ${{ steps.version-bump-app.outputs.newTag }}
+      - name: Push Changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GH_TOKEN }}
+          tags: true
