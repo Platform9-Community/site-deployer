@@ -5,7 +5,7 @@ on:
       - main
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   detect_changes:
@@ -48,7 +48,7 @@ jobs:
           skip-tag: 'true'
           skip-push: 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PACKAGEJSON_DIR: 'cmd'
       - name: New Version Output
         env:
@@ -71,20 +71,14 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: false
+          push: true
           tags: ${{ steps.img_name_and_version_tag.outputs.IMG_NAME_AND_TAG }}
       - name: Commit Files
+        with:
+          token: ${{ secrets.GH_TOKEN }}
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit -am 'CI(version) ${{ steps.version-bump-app.outputs.newTag }}'
-      - name: Tag repo
-        uses: rickstaa/action-create-tag@v1
-        with:
-          tag: ${{ steps.version-bump-app.outputs.newTag }}
-          message: "CI: bump to new version ${{ steps.version-bump-app.outputs.newTag }}"
-      - name: Push Changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GH_TOKEN }}
-          tags: true
+          git tag ${{ steps.version-bump-app.outputs.newTag }}
+          git push origin main ${{ steps.version-bump-app.outputs.newTag }}
