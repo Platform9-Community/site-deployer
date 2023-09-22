@@ -203,6 +203,7 @@ func (r *SiteReconciler) ReconcileSiteJob(ctx context.Context, site *deployv1.Si
 		return ctrl.Result{Requeue: true}, nil
 	}
 
+	// Add the volume mounts from the Secret
 	jobVolumeMounts := []corev1.VolumeMount{}
 	for _, secret_item := range site.Spec.InfraJob.Mounts {
 		mount := corev1.VolumeMount{
@@ -220,6 +221,7 @@ func (r *SiteReconciler) ReconcileSiteJob(ctx context.Context, site *deployv1.Si
 	}
 	jobVolumeMounts = append(jobVolumeMounts, qbertpayloadMount)
 
+	// Setup the job's environment
 	jobEnvVars := []corev1.EnvVar{
 		{
 			Name:  "SITE_DEPLOYER_JOB_CLUSTER_NAME",
