@@ -168,6 +168,7 @@ func (r *SiteReconciler) ReconcileSiteJob(ctx context.Context, site *deployv1.Si
 			ctxlog.Error(err, fmt.Sprintf("Unable to list 'add' type jobs for Site '%s'", site.Name))
 			return ctrl.Result{}, err
 		}
+		// look for any existing jobs that need to be garbage collected first
 		for _, job := range siteJobs.Items {
 			ctxlog.Info(fmt.Sprintf("Identified 'add' type job ('%s') that needs to be deleted first before creating a 'delete' job.", job.Name))
 			if err := r.Delete(ctx, &job, client.PropagationPolicy(metav1.DeletePropagationBackground)); client.IgnoreNotFound(err) != nil {
