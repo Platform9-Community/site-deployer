@@ -25,6 +25,7 @@ jobs:
         with:
           filters: |
             bump_app:
+              - '!cmd/package.json'
               - 'cmd/**'
               - 'internal/**'
               - 'api/**'
@@ -62,7 +63,7 @@ jobs:
         run: echo "New version $NEW_TAG"
       - name: Retrieve Docker Image Name with Tag
         run: |
-          echo "::set-output name=IMG_NAME_AND_TAG::$(make docker_img_name_and_tag)"
+          echo "IMG_NAME_AND_TAG=$(make docker_img_name_and_tag)" >> $GITHUB_OUTPUT
         id: img_name_and_version_tag
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -81,7 +82,7 @@ jobs:
           tags: ${{ steps.img_name_and_version_tag.outputs.IMG_NAME_AND_TAG }}
       - name: Commit Files
         run: |
-          git config --local user.email "action@users.noreply.github.com"
+          git config --local user.email "sitedeployaction@users.noreply.github.com"
           git config --local user.name "GitHub Action"
           git commit -am 'CI(version) ${{ steps.version-bump-app.outputs.newTag }}'
           git tag ${{ steps.version-bump-app.outputs.newTag }}
