@@ -65,6 +65,7 @@ jobs:
       - name: Retrieve Docker Image Name with Tag
         run: |
           echo "IMG_NAME_AND_TAG=$(make docker_img_name_and_tag)" >> $GITHUB_OUTPUT
+          echo "IMG_NAME_AND_TAG_LATEST=$(make docker_img_name_and_tag_latest)" >> $GITHUB_OUTPUT
         id: img_name_and_version_tag
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -80,7 +81,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.img_name_and_version_tag.outputs.IMG_NAME_AND_TAG }}
+          tags: ${{ steps.img_name_and_version_tag.outputs.IMG_NAME_AND_TAG }},${{ steps.img_name_and_version_tag.outputs.IMG_NAME_AND_TAG_LATEST }}
       - name: Commit Files
         run: |
           git config --local user.email "sitedeployaction@users.noreply.github.com"

@@ -91,7 +91,9 @@ docker-build: test lint ## Build docker image with the manager.
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
-	$(CONTAINER_TOOL) push ${IMG}
+	$(CONTAINER_TOOL) image tag ${IMAGE}:${TAG} ${IMAGE}:latest
+	$(CONTAINER_TOOL) image push ${IMAGE}:${TAG}
+	$(CONTAINER_TOOL) image push ${IMAGE}:latest
 
 # PLATFORMS defines the target platforms for  the manager image be build to provide support to multiple
 # architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
@@ -174,6 +176,10 @@ $(ENVTEST): $(LOCALBIN)
 version:
 	@echo "Version is: $(VERSION)"
 
-.PHONY: docker_img_name_with_tag
+.PHONY: docker_img_name_and_tag
 docker_img_name_and_tag:
 	@echo "$(IMAGE):$(VERSION)"
+
+.PHONY: docker_img_name_and_tag_latest
+docker_img_name_and_tag_latest:
+	@echo "$(IMAGE):latest"
