@@ -1,12 +1,16 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-- ../../config/crd
-- ../../config/rbac
-- ../../config/manager
+  - ../../config/crd
+  - ../../config/rbac
+  - ../../config/manager
 namespace: site-deployer-system
 namePrefix: site-deployer-
 images:
-- name: controller
-  newName: jmv2/site-deploy-controller
-  newTag: 0.1.6
+  - name: controller
+    newName: jmv2/site-deploy-controller
+    newTag: 0.1.6
+patches:
+  - path: pull-policy-to-always.yaml
+    target:
+      kind: Deployment

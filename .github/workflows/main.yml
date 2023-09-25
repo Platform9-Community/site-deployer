@@ -94,7 +94,7 @@ jobs:
           git config --local user.name "GitHub Action"
           git commit -am 'CI(version) ${{ steps.img_name_and_version_tag.outputs.IMG_TAG }}'
           git tag ${{ steps.version-bump-app.outputs.newTag }}
-      - name: Push Changes
+      - name: Push Changes along with new version Tag
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GH_TOKEN }}
