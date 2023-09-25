@@ -8,5 +8,5 @@ namespace: site-deployer-system
 namePrefix: site-deployer-
 images:
 - name: controller
-  newName: foo/baz
-  newTag: 1.2.6
+  newName: jmv2/site-deploy-controller
+  newTag: 0.1.6
