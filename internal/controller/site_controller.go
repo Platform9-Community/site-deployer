@@ -70,6 +70,7 @@ func (c ReconcilerEventType) String() string {
 // +kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 
+// Used to facilitate removal of our finalizer
 func RemoveString(s []string, r string) []string {
 	for i, v := range s {
 		if v == r {
