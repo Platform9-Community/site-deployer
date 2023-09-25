@@ -176,10 +176,10 @@ $(ENVTEST): $(LOCALBIN)
 version:
 	@echo "Version is: $(VERSION)"
 
-.PHONY: docker_img_name_and_tag
-docker_img_name_and_tag:
-	@echo "$(IMAGE):$(VERSION)"
+.PHONY: docker_img_name
+docker_img_name:
+	@echo "$(IMAGE)"
 
-.PHONY: docker_img_name_and_tag_latest
-docker_img_name_and_tag_latest:
-	@echo "$(IMAGE):latest"
+.PHONY: docker_img_version
+docker_img_version:
+	@echo "$(VERSION)"
