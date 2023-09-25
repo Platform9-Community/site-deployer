@@ -58,14 +58,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PACKAGEJSON_DIR: 'cmd'
-      - name: New Version Output
-        env:
-          NEW_TAG: ${{ steps.version-bump-app.outputs.newTag }}
-        run: echo "New version $NEW_TAG"
       - name: Retrieve Docker Image Name and Tag
         run: |
           echo "IMG_NAME=$(make docker_img_name)" >> $GITHUB_OUTPUT
-          echo "IMG_TAG=$(make docker_img_tag)" >> $GITHUB_OUTPUT
+          echo "IMG_TAG=$(make docker_img_version)" >> $GITHUB_OUTPUT
+          echo "New version: $(make docker_img_name):$(make docker_img_version)"
         id: img_name_and_version_tag
       - name: Setup Kustomize
         uses: imranismail/setup-kustomize@v2
@@ -95,7 +92,7 @@ jobs:
         run: |
           git config --local user.email "sitedeployaction@users.noreply.github.com"
           git config --local user.name "GitHub Action"
-          git commit -am 'CI(version) ${{ steps.version-bump-app.outputs.newTag }}'
+          git commit -am 'CI(version) ${{ steps.img_name_and_version_tag.outputs.IMG_TAG }}'
           git tag ${{ steps.version-bump-app.outputs.newTag }}
       - name: Push Changes
         uses: ad-m/github-push-action@master
