@@ -160,6 +160,8 @@ func (r *SiteReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	return ctrl.Result{}, nil
 }
 
+// Similar to the Reconcile function above, but specifically for reconciling the Jobs
+// ie. add / delete
 func (r *SiteReconciler) ReconcileSiteJob(ctx context.Context, site *deployv1.Site, eventType ReconcilerEventType, ctxlog logr.Logger) (ctrl.Result, error) {
 	if eventType == ReconcilerEventTypeDeleted {
 		// We want to check if there any existing "add" type jobs already running
